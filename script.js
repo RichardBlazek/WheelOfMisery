@@ -1,4 +1,4 @@
-﻿function httpGet(path, callback) {
+﻿function get(path, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -7,6 +7,16 @@
     };
     xhr.open('GET', path, true);
     xhr.send();
+}
+
+function drawWheel(canvas, questions, rotation) {
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = '#FFD';
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 4;
+    ctx.arc(canvas.width / 2, canvas.height / 2, canvas.height / 2 - 10, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
 }
 
 var questions2 = [
@@ -88,8 +98,10 @@ changeGrade.addEventListener('click', function () {
 spinIt.addEventListener('click', function () {
     if (student !== 'loading') {
         student = 'loading';
-        httpGet('/victim', function (resp) {
+        get('/victim', function (resp) {
             student = parseInt(resp);
         });
     }
 });
+
+drawWheel(document.getElementById('canvas'), questions2, 0.0);
