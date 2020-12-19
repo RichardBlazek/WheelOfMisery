@@ -1,0 +1,21 @@
+﻿h1 {
+	font-size: 26px;
+	font-weight: normal;
+}
+button {
+	background-color: #3B4;
+	color: #FFF;
+	font-size: 18px;
+	cursor: pointer;
+	border: none;
+	padding: 0.5rem 1rem;
+	border: none;
+	outline: none;
+}
+body {
+	align-content: center;
+	align-items: center;
+	align-self: center;
+	text-align: center;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
