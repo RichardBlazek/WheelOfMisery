@@ -34,12 +34,8 @@ function getPosition(rotation, count) {
     return mod(rotation / TAU * count + 0.5, count);
 }
 
-function sumArithmeticSequency(first, step, count) {
-    return count * (first + (count - 1) * step / 2);
-}
-
-function computeSequencyStep(first, last, sum) {
-    return (last * last - first * first) / (2 * sum - first - last);
+function computeDeceleration(speed, distance) {
+    return speed * speed / (2 * distance - speed);
 }
 
 function drawCircle(ctx, width, stroke, fill, x, y, r) {
@@ -190,8 +186,8 @@ function turn(angle, slowness) {
     drawWheel(canvas, context, grade.questions, spining.rotation);
     if (spining.stopping) {
         var position = getPosition(spining.rotation, grade.questions.length);
-        var steps = student.getQuestion(grade.questions.length) - position + grade.questions.length * 2;
-        slowness -= computeSequencyStep(angle, 0.0, steps * getAngle(grade.questions.length));
+        var destination = student.getQuestion(grade.questions.length) + 0.5;
+        slowness += computeDeceleration(angle - slowness, (destination - position) * getAngle(grade.questions.length) + TAU);
     }
     if (angle > slowness) {
         spining.rotation += angle - slowness;
