@@ -20,10 +20,6 @@ function toInt(f) {
     return ~~f;
 }
 
-function mod(n, d) {
-    return n - toInt(n / d) * d;
-}
-
 TAU = 2 * Math.PI;
 
 function getAngle(count) {
@@ -31,7 +27,7 @@ function getAngle(count) {
 }
 
 function getPosition(rotation, count) {
-    return mod(rotation / TAU * count + 0.5, count);
+    return (rotation / TAU * count + 0.5) % count;
 }
 
 function computeDeceleration(speed, distance) {
@@ -54,9 +50,9 @@ function drawInsideWheel(canvas, ctx, count) {
 
     ctx.fillStyle = '#FF0';
     ctx.beginPath();
-    ctx.moveTo(0, 10);
+    ctx.moveTo(0, 20);
     ctx.lineTo(0, -10);
-    ctx.lineTo(Math.cos(angle * 0.5) * (canvas.width / 8), Math.sin(angle * 0.5) * (canvas.width / 8));
+    ctx.lineTo(Math.cos(angle * 0.5) * (canvas.width / 8 + 5), Math.sin(angle * 0.5) * (canvas.width / 8 + 5));
     ctx.fill();
 }
 
@@ -89,8 +85,12 @@ function drawWheel(canvas, ctx, questions, rotation) {
     drawInsideWheel(canvas, ctx, count);
 }
 
+function div(a, b) { return ~~(a / b); }
 function getVictimsQuestion(victim, index, questions) {
-    return (victim * 2 + index * index * (victim + 3)) % questions;
+    var value = (div(questions, 3) * index + victim * 3) % questions;
+    value = questions === 16 && value === 15 && victim !== 0 ? victim % 15 : value;
+    value = questions === 16 && victim === 0 && index === 0 ? 15 : value;
+    return value;
 }
 
 var questions2 = [
@@ -165,11 +165,20 @@ var canvas = document.getElementById('canvas');
 var context = canvas.getContext('2d');
 
 var student = {
-    index: 37, question: 73, loading: false, getQuestion: function (questions) {
-        return getVictimsQuestion(this.index, this.question, questions);
+    index: 37, question2: 45, question3: 73, loading: false, getQuestion: function (questions, second) {
+        return getVictimsQuestion(this.index, second ? this.question2 : this.question3, questions);
+    },
+    next: function (second, reset) {
+        if (reset) {
+            this.question2 = this.question3 = 0;
+        } else if (second) {
+            this.question2 += 1;
+        } else {
+            this.question3 += 1;
+        }
     }
 };
-var spining = { started: false, stopping: false, rotation: 0.0 };
+var spining = { started: false, stopping: false, rotation: 0.0, speed: 0.0, acceleration: 0.0 };
 var grade2 = { second: true, questions: questions2 };
 var grade3 = { second: false, questions: questions3 };
 var grade = grade3;
@@ -182,19 +191,16 @@ changeGrade.addEventListener('click', function () {
     }
 });
 
-function turn(angle, slowness) {
+function turn() {
     drawWheel(canvas, context, grade.questions, spining.rotation);
-    if (spining.stopping) {
-        var position = getPosition(spining.rotation, grade.questions.length);
-        var destination = student.getQuestion(grade.questions.length) + 0.5;
-        slowness += computeDeceleration(angle - slowness, (destination - position) * getAngle(grade.questions.length) + TAU);
-    }
-    if (angle > slowness) {
-        spining.rotation += angle - slowness;
-        window.setTimeout(turn, 40, angle, slowness);
+    if (spining.speed > 0) {
+        spining.rotation += spining.speed;
+        spining.speed += spining.acceleration;
     } else {
+        spinIt.innerHTML = 'Pořádně to roztočit';
         spining.started = spining.stopping = false;
     }
+    window.setTimeout(turn, 100);
 }
 
 function startSpining() {
@@ -203,16 +209,19 @@ function startSpining() {
     spinIt.innerHTML = 'Zastavit';
     get('/victim', function (response) {
         var index = parseInt(response);
-        student.question = index == student.index ? student.question + 1 : 0;
+        student.next(grade.second, index !== student.index);
         student.index = index;
         student.loading = false;
     });
-    turn(getAngle(grade.questions.length) * 0.25, 0.0);
+    spining.acceleration = 0.0;
+    spining.speed = getAngle(grade.questions.length) / 2;
 }
 
 function stopSpining() {
     spining.stopping = true;
-    spinIt.innerHTML = 'Pořádně to roztočit';
+    var position = getPosition(spining.rotation, grade.questions.length);
+    var destination = student.getQuestion(grade.questions.length, grade.second) + 0.5;
+    spining.acceleration = -computeDeceleration(spining.speed, (destination - position) * getAngle(grade.questions.length) + 2 * TAU);
 }
 
 spinIt.addEventListener('click', function () {
@@ -226,3 +235,4 @@ spinIt.addEventListener('click', function () {
 });
 
 drawWheel(canvas, context, grade.questions, 0.0);
+turn();

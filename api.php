@@ -1,5 +1,6 @@
 <?php
 
+file_put_contents('./password.txt', password_hash('time', PASSWORD_DEFAULT));
 $f3 = require('fatfree/base.php');
 
 $f3->route('GET /victim',

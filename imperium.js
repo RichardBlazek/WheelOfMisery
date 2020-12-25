@@ -10,13 +10,13 @@
 }
 
 var heading = document.getElementById('heading');
-var confirm = document.getElementById('confirm');
+var button = document.getElementById('confirm');
 var student = document.getElementById('student');
 var pwin = document.getElementById('pwin');
 
 var password = null;
 
-confirm.addEventListener('click', function () {
+function doIt() {
 	var choice = student.selectedIndex;
 	var choiceIndex = parseInt(student.value);
 	var choiceText = student.options[choice].text;
@@ -29,4 +29,6 @@ confirm.addEventListener('click', function () {
 			pwin.style.display = 'none';
 		}
 	}, JSON.stringify({ 'selected': choiceIndex, 'password': pw }));
-});
+}
+
+button.addEventListener('click', doIt);
