@@ -20,6 +20,10 @@ function toInt(f) {
     return ~~f;
 }
 
+function mod(n, d) {
+    return n - toInt(n / d) * d;
+}
+
 TAU = 2 * Math.PI;
 
 function getAngle(count) {
@@ -27,8 +31,15 @@ function getAngle(count) {
 }
 
 function getPosition(rotation, count) {
-    return toInt(Math.round(rotation / TAU * count)) % count;
+    return mod(rotation / TAU * count + 0.5, count);
+}
 
+function sumArithmeticSequency(first, step, count) {
+    return count * (first + (count - 1) * step / 2);
+}
+
+function computeSequencyStep(first, last, sum) {
+    return (last * last - first * first) / (2 * sum - first - last);
 }
 
 function drawCircle(ctx, width, stroke, fill, x, y, r) {
@@ -49,7 +60,7 @@ function drawInsideWheel(canvas, ctx, count) {
     ctx.beginPath();
     ctx.moveTo(0, 10);
     ctx.lineTo(0, -10);
-    ctx.lineTo(Math.cos(-angle * 0.5) * (canvas.width / 8), Math.sin(-angle * 0.5) * (canvas.width / 8));
+    ctx.lineTo(Math.cos(angle * 0.5) * (canvas.width / 8), Math.sin(angle * 0.5) * (canvas.width / 8));
     ctx.fill();
 }
 
@@ -74,12 +85,16 @@ function drawWheel(canvas, ctx, questions, rotation) {
     ctx.font = '11px Helvetica, Verdana, sans-serif';
     ctx.fillStyle = '#000';
     for (i = 0; i < count; ++i) {
-        ctx.rotate(-angle * 0.5);
+        ctx.rotate(angle * 0.5);
         ctx.fillText(questions[i], canvas.width / 8, 4);
-        ctx.rotate(angle * 1.5);
+        ctx.rotate(-angle * 1.5);
     }
     ctx.rotate(-rotation);
     drawInsideWheel(canvas, ctx, count);
+}
+
+function getVictimsQuestion(victim, index, questions) {
+    return (victim * 2 + index * index * (victim + 3)) % questions;
 }
 
 var questions2 = [
@@ -148,16 +163,17 @@ var questions3 = [
     'Maxwellovy rovnice'
 ];
 
-function getVictimsQuestion(victim, index, questions) {
-    return questions[(victim * 2 + index * (victim + 3)) % questions.length];
-}
-
 var changeGrade = document.getElementById('changeGrade');
 var spinIt = document.getElementById('spinIt');
-var canvas = document.getElementById('canvas'), context = canvas.getContext('2d');
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
 
-var student = -1;
-var spining = { started: false, stopping: false };
+var student = {
+    index: 37, question: 73, loading: false, getQuestion: function (questions) {
+        return getVictimsQuestion(this.index, this.question, questions);
+    }
+};
+var spining = { started: false, stopping: false, rotation: 0.0 };
 var grade2 = { second: true, questions: questions2 };
 var grade3 = { second: false, questions: questions3 };
 var grade = grade3;
@@ -170,26 +186,32 @@ changeGrade.addEventListener('click', function () {
     }
 });
 
-function turn(angle, slowness, rotation) {
-    drawWheel(canvas, context, grade.questions, rotation);
+function turn(angle, slowness) {
+    drawWheel(canvas, context, grade.questions, spining.rotation);
     if (spining.stopping) {
-        slowness += angle / 25;
+        var position = getPosition(spining.rotation, grade.questions.length);
+        var steps = student.getQuestion(grade.questions.length) - position + grade.questions.length * 2;
+        slowness -= computeSequencyStep(angle, 0.0, steps * getAngle(grade.questions.length));
     }
     if (angle > slowness) {
-        window.setTimeout(turn, 40, angle, slowness, rotation + angle - slowness);
+        spining.rotation += angle - slowness;
+        window.setTimeout(turn, 40, angle, slowness);
     } else {
-        spining = { started: false, stopping: false };
+        spining.started = spining.stopping = false;
     }
 }
 
 function startSpining() {
-    student = 'loading';
+    student.loading = true;
     spining.started = true;
     spinIt.innerHTML = 'Zastavit';
-    get('/victim', function (resp) {
-        student = parseInt(resp);
+    get('/victim', function (response) {
+        var index = parseInt(response);
+        student.question = index == student.index ? student.question + 1 : 0;
+        student.index = index;
+        student.loading = false;
     });
-    turn(getAngle(grade.questions.length) * 0.25, 0.0, 0.0);
+    turn(getAngle(grade.questions.length) * 0.25, 0.0);
 }
 
 function stopSpining() {
@@ -198,7 +220,7 @@ function stopSpining() {
 }
 
 spinIt.addEventListener('click', function () {
-    if (student !== 'loading') {
+    if (!student.loading) {
         if (!spining.started && !spining.stopping) {
             startSpining();
         } else if (spining.started && !spining.stopping) {
