@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <title>Pokoutné informace</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="./site.css" rel="stylesheet" />
+</head>
+
+<body>
+    <h1>Tvoje otázky</h1>
+    <select id="student">
+        <option value="0">Blažek</option>
+        <option value="1">Bušová</option>
+        <option value="2">Dominik</option>
+        <option value="3">Halaštová</option>
+        <option value="4">Heroudková</option>
+        <option value="5">Kadeřábek</option>
+        <option value="6">Krupka</option>
+        <option value="7">Malota</option>
+        <option value="8">Němec</option>
+        <option value="9">Nevrlka</option>
+        <option value="9">Pezlar</option>
+        <option value="10">Povolný</option>
+        <option value="11">Punčochář</option>
+        <option value="12">Reichertová</option>
+        <option value="13">Rychlý</option>
+        <option value="14">Tlačbaba</option>
+        <option value="15">Tran</option>
+        <option value="16">Veselý</option>
+    </select>
+    <p id="answers">
+
+    </p>
+    <script>
+        var questions2 = [
+            'Teplotní roztažnost pevných látek',
+            'Teplotní stupnice',
+            'Děje s ideálním plynem',
+            'Teplotní roztažnost kapalin',
+            'Modely struktur látek',
+            'Skupenské teplo',
+            'Fázový diagram',
+            'Absolutní a relativní vlhkost',
+            'Vznik oblačnosti a srážek',
+            'Elektrický náboj, elektrování těles',
+            'Chování vodičů a nevodičů v elektrickém poli',
+            'Coulombův zákon, intenzita elektrického pole',
+            'Elektrické napětí',
+            'Kondenzátor',
+            'Jednoduchý obvod',
+            'Práce a výkon v elektrickém obvodu',
+            'Voltampérová charakteristika, Ohmův zákon',
+            'Zdroje napětí, vnitřní odpor zdroje',
+            'Odpor kovového vodiče',
+            'Paralelní a sériové zapojení',
+            'Tlak v tekutině',
+            'Hydrostatický tlak',
+            'Atmosférický tlak',
+            'Vztlaková síla',
+            'Objemový průtok, rovnice kontinuity',
+            'Bernoulliova rovnice',
+            'Obtékání těles, aerodynamický vztlak',
+            'Atomová hypotéza a její důkazy',
+            'Avogadrova konstanta, látkové množství',
+            'Teplota, 0. zákon termodynamiky',
+            'Teplotní stupnice',
+            'Vnitřní energie, 1. zákon termodynamiky',
+            'Zahřívání těles, tepelná kapacita',
+            'Vedení, proudění, záření',
+            'Model ideálního plynu, rychlost pohybu molekul',
+            'Stavová rovnice ideálního plynu',
+            'Děje s ideálním plynem',
+            'Práce vykonaná plynem',
+            'Tepelné stroje, chladící zařízení',
+            '2. zákon termodynamiky',
+            'Rozdělení pevných látek podle vnitřní struktury',
+            'Model struktury krystalické pevné látky',
+            'Deformace v tahu, Hookův zákon',
+            'Kirchhoffovy zákony'
+        ];
+
+        var questions3 = [
+            'Princip vlastních a příměsových polovodičů',
+            'PN přechod, dioda, LED',
+            'Tranzistor, termistor, fotodioda, fotorezistor',
+            'Vedení elektrického proudu kapalinou',
+            'Galvanické články, akumulátory',
+            'Vedení elektrického proudu plynem',
+            'Druhy výbojů v plynech',
+            'Magnetická indukce',
+            'Magnetické pole magnetu, vodiče a cívky',
+            'Magnetické vlastnosti látek',
+            'Magnetická síla',
+            'Pohyb částice v magnetickém poli',
+            'Zákon elektromagnetické indukce',
+            'Indukovaný elektrický proud, indukčnost cívky',
+            'Elektromotory',
+            'Maxwellovy rovnice'
+        ];
+        function div(a, b) { return ~~(a / b); }
+        function getVictimsQuestion(victim, index, questions) {
+            var value = (div(questions, 3) * index + victim * 3) % questions;
+            value = questions === 16 && value === 15 && victim !== 0 ? victim % 15 : value;
+            value = questions === 16 && victim === 0 && index === 0 ? 15 : value;
+            return value;
+        }
+
+        var studentSelect = document.getElementById('student');
+        var answersOutput = document.getElementById('answers');
+        studentSelect.onchange = function () {
+            var student = ~~studentSelect.value;
+            answersOutput.innerHTML = '<h2>Druhák</h2>';
+            for (var i = 0; i < 15; ++i) {
+                answersOutput.innerHTML += questions2[getVictimsQuestion(student, i, questions2.length)] + '<br/>';
+            }
+            answersOutput.innerHTML += '<h2>Třeťák</h2>';
+            for (i = 0; i < 15; ++i) {
+                answersOutput.innerHTML += questions3[getVictimsQuestion(student, i, questions3.length)] + '<br/>';
+            }
+        }
+        function compute(fn, count, samples) {
+            var stat = new Array(count), i = 0;
+            for (i = 0; i < count; ++i) {
+                stat[i] = 0;
+            }
+            for (let i = 0; i < samples; ++i) {
+                for (let victim = 0; victim < 17; ++victim) {
+                    stat[fn(victim, i, count)] += ~~(1 / count * 100);
+                }
+            }
+            return stat;
+        }
+    </script>
+</body>
+
+</html>

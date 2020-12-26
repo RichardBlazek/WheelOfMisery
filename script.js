@@ -46,9 +46,9 @@ function drawCircle(ctx, width, stroke, fill, x, y, r) {
 
 function drawInsideWheel(canvas, ctx, count) {
     var angle = getAngle(count);
-    drawCircle(ctx, 6, '#888', '#222', 0, 0, canvas.width / 8 - 10);
+    drawCircle(ctx, 10, '#888', '#222', 0, 0, canvas.width / 8 - 10);
 
-    ctx.fillStyle = '#FF0';
+    ctx.fillStyle = '#EEE';
     ctx.beginPath();
     ctx.moveTo(0, 20);
     ctx.lineTo(0, -10);
@@ -64,14 +64,15 @@ function fillPie(ctx, style, x, y, r, start, stop) {
     ctx.fill();
 }
 
+var colors = ['#58F', '#F5C', '#FC1', '#4D4'];
 function drawWheel(canvas, ctx, questions, rotation) {
     var count = questions.length, angle = getAngle(count), i = 0;
     ctx.setTransform(1, 0, 0, 1, canvas.width / 2, canvas.height / 2);
     ctx.rotate(rotation);
 
-    drawCircle(ctx, 8, '#444', '#F88', 0, 0, canvas.width / 2 - 10);
-    for (i = 0; i < count; i += 2) {
-        fillPie(ctx, '#6F6', 0, 0, canvas.width / 2 - 10, TAU / count * i, TAU / count * (i + 1));
+    drawCircle(ctx, 10, '#444', '#FFF', 0, 0, canvas.width / 2 - 15);
+    for (i = 0; i < count; ++i) {
+        fillPie(ctx, colors[i & 3], 0, 0, canvas.width / 2 - 15, TAU / count * i, TAU / count * (i + 1));
     }
 
     ctx.font = '11px Helvetica, Verdana, sans-serif';
@@ -178,7 +179,7 @@ var student = {
         }
     }
 };
-var spining = { started: false, stopping: false, rotation: 0.0, speed: 0.0, acceleration: 0.0 };
+var spining = { started: false, stopping: false, rotation: 0.0, speed: 0.0, acceleration: 0.0, stopRotation: Infinity };
 var grade2 = { second: true, questions: questions2 };
 var grade3 = { second: false, questions: questions3 };
 var grade = grade3;
@@ -195,12 +196,13 @@ function turn() {
     drawWheel(canvas, context, grade.questions, spining.rotation);
     if (spining.speed > 0) {
         spining.rotation += spining.speed;
-        spining.speed += spining.acceleration;
+        if (spining.rotation >= spining.stopRotation) {
+            spining.speed += spining.acceleration;
+        }
     } else {
-        spinIt.innerHTML = 'Pořádně to roztočit';
+        spining.stopRotation = Infinity;
         spining.started = spining.stopping = false;
     }
-    window.setTimeout(turn, 100);
 }
 
 function startSpining() {
@@ -214,14 +216,18 @@ function startSpining() {
         student.loading = false;
     });
     spining.acceleration = 0.0;
-    spining.speed = getAngle(grade.questions.length) / 2;
+    spining.speed = getAngle(grade.questions.length) * (grade.questions.length == 16 ? 0.1 : 0.25);
 }
 
 function stopSpining() {
     spining.stopping = true;
     var position = getPosition(spining.rotation, grade.questions.length);
     var destination = student.getQuestion(grade.questions.length, grade.second) + 0.5;
-    spining.acceleration = -computeDeceleration(spining.speed, (destination - position) * getAngle(grade.questions.length) + 2 * TAU);
+    var diff = (destination - position) * getAngle(grade.questions.length);
+    diff = (diff < TAU / 2 ? diff + TAU : diff);
+    spining.stopRotation = spining.rotation + diff;
+    spining.acceleration = -computeDeceleration(spining.speed, TAU / 2);
+    spinIt.innerHTML = 'Pořádně to roztočit';
 }
 
 spinIt.addEventListener('click', function () {
@@ -235,4 +241,4 @@ spinIt.addEventListener('click', function () {
 });
 
 drawWheel(canvas, context, grade.questions, 0.0);
-turn();
+window.setInterval(turn, 25);
