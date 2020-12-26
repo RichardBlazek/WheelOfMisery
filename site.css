@@ -19,3 +19,6 @@ body {
 	text-align: center;
 	font-family: Helvetica, Verdana, Georgia, sans-serif;
 }
+canvas {
+	width: 100vmin;
+}
