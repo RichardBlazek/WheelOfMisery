@@ -112,7 +112,7 @@ function startSpining() {
     student.loading = true;
     spining.started = true;
     spinIt.innerHTML = 'Zastavit';
-    get('/victim', function (response) {
+    get('/victim.txt', function (response) {
         student.setIndex(parseInt(response));
         student.loading = false;
     });

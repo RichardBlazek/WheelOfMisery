@@ -22,7 +22,7 @@ function doIt() {
 	var choiceText = student.options[choice].text;
 	var pw = (password === null ? pwin.value : password);
 
-	post('/set-victim/', function (success) {
+	post('/set-victim.php', function (success) {
 		if (success === 'true') {
 			heading.innerHTML = choiceText;
 			password = pw;
