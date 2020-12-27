@@ -5,12 +5,13 @@
 button {
 	background-color: #3B4;
 	color: #FFF;
-	font-size: 18px;
-	cursor: pointer;
-	border: none;
-	padding: 0.5rem 1rem;
 	border: none;
 	outline: none;
+	cursor: pointer;
+}
+button, select, input {
+	font-size: 18px;
+	padding: 0.5rem 1rem;
 }
 body {
 	align-content: center;
